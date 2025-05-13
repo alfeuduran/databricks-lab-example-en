@@ -1,118 +1,118 @@
-# CI/CD Hands-On com Databricks
+# CI/CD Hands-On with Databricks
 
-Este repositório contém o código e configurações necessárias para o workshop de CI/CD com Databricks.
+This repository contains the code and configurations required for the CI/CD workshop with Databricks.
 
-Por se tratar de um workshop, o código fonte do job foi simplificado para fins didáticos.
+As this is a workshop, the job source code has been simplified for educational purposes.
 
-Devido à complexidade de demonstrar um cenário end-to-end completo de CI/CD (que envolve Git, CLI, runners e outros objetos externos), este repositório foi preparado com uma estrutura pronta contendo os seguintes assets do Databricks:
+Due to the complexity of demonstrating a complete end-to-end CI/CD scenario (which involves Git, CLI, runners, and other external objects), this repository has been prepared with a ready-to-use structure containing the following Databricks assets:
 
-- Notebook que cria uma tabela de funcionários
-- Workflow configurado para executar este Notebook
-- Testes unitários previamente definidos
-- Esteira de CI/CD utilizando GitHub Actions já configurada
+- Notebook that creates an employee table
+- Workflow configured to run this Notebook
+- Predefined unit tests
+- CI/CD pipeline using GitHub Actions already configured
 
-## Índice
+## Table of Contents
 
-1. [Pré-requisitos](#pré-requisitos)
-2. [Ferramentas Utilizadas](#ferramentas-utilizadas)
-3. [Passo a Passo](#passo-a-passo)
-   - [Passo 1: Instalação do Databricks CLI](#passo-1-instalação-do-databricks-cli)
-   - [Passo 2: Clone do Repositório](#passo-2-clone-do-repositório)
-   - [Passo 3: Importação de um Job Existente](#passo-3-importação-de-um-job-existente)
-   - [Passo 4: Configuração de Variáveis de Ambiente](#passo-4-configuração-de-variáveis-de-ambiente)
-   - [Passo 5: Deployment em Diferentes Ambientes](#passo-5-deployment-em-diferentes-ambientes)
-   - [Passo 6: Executando o Job](#passo-6-executando-o-job)
-4. [Executando Testes Unitários e de Integração](#executando-testes-unitários-e-de-integração)
-   - [Sobre o Databricks Connect](#sobre-o-databricks-connect)
-   - [Pré-requisitos para os Testes](#pré-requisitos-para-os-testes)
-   - [Estrutura dos Testes](#estrutura-dos-testes)
-   - [Executando os Testes](#executando-os-testes)
-5. [Validação de Código Estático com Flake8](#validação-de-código-estático-com-flake8)
+1. [Prerequisites](#prerequisites)
+2. [Tools Used](#tools-used)
+3. [Step by Step](#step-by-step)
+   - [Step 1: Installing Databricks CLI](#step-1-installing-databricks-cli)
+   - [Step 2: Cloning the Repository](#step-2-cloning-the-repository)
+   - [Step 3: Importing an Existing Job](#step-3-importing-an-existing-job)
+   - [Step 4: Setting Environment Variables](#step-4-setting-environment-variables)
+   - [Step 5: Deployment to Different Environments](#step-5-deployment-to-different-environments)
+   - [Step 6: Running the Job](#step-6-running-the-job)
+4. [Running Unit and Integration Tests](#running-unit-and-integration-tests)
+   - [About Databricks Connect](#about-databricks-connect)
+   - [Test Prerequisites](#test-prerequisites)
+   - [Test Structure](#test-structure)
+   - [Running the Tests](#running-the-tests)
+5. [Static Code Validation with Flake8](#static-code-validation-with-flake8)
 6. [GitHub Actions](#github-actions)
-   - [Fluxo de Trabalho com GitHub Actions](#fluxo-de-trabalho-com-github-actions)
-7. [Referência](#referência)
-   - [Estrutura do Repositório](#estrutura-do-repositório)
+   - [Workflow with GitHub Actions](#workflow-with-github-actions)
+7. [Reference](#reference)
+   - [Repository Structure](#repository-structure)
 
-## Pré-requisitos
+## Prerequisites
 
-- Conhecimento prévio de Git
-- Conhecimento prévio dos conceitos de CI/CD
-- Acesso a um workspace Databricks
-- Token de acesso ao Databricks
+- Prior knowledge of Git
+- Prior knowledge of CI/CD concepts
+- Access to a Databricks workspace
+- Databricks access token
 
-## Ferramentas Utilizadas
+## Tools Used
 
-Neste workshop, utilizaremos as seguintes ferramentas para implementar o pipeline de CI/CD:
+In this workshop, we will use the following tools to implement the CI/CD pipeline:
 
 ### Databricks CLI
-A [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/) é uma interface de linha de comando que permite interagir com a plataforma Databricks a partir do seu terminal local ou scripts de automação. Ela encapsula a API REST do Databricks, fornecendo endpoints para modificar ou solicitar informações sobre objetos do workspace Databricks.
+The [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/) is a command-line interface that allows you to interact with the Databricks platform from your local terminal or automation scripts. It wraps the Databricks REST API, providing endpoints to modify or request information about Databricks workspace objects.
 
 ### Databricks Asset Bundles
-[Databricks Asset Bundles](https://docs.databricks.com/aws/en/dev-tools/bundles) são uma ferramenta que facilita a adoção de boas práticas de engenharia de software, incluindo controle de código-fonte, revisão de código, testes e integração contínua e entrega (CI/CD) para seus projetos de dados e IA. Os bundles permitem descrever recursos do Databricks como jobs, pipelines e notebooks como arquivos de origem.
+[Databricks Asset Bundles](https://docs.databricks.com/aws/en/dev-tools/bundles) are a tool that facilitates the adoption of software engineering best practices, including source control, code review, testing, and continuous integration and delivery (CI/CD) for your data and AI projects. Bundles allow you to describe Databricks resources such as jobs, pipelines, and notebooks as source files.
 
 ### Databricks Connect
-[Databricks Connect](https://docs.databricks.com/aws/en/dev-tools/databricks-connect/python/) é uma biblioteca cliente que permite conectar seu ambiente de desenvolvimento local ao Databricks. Isso possibilita:
-- Desenvolvimento local
-- Integração contínua
-- Depuração remota
-- Execução de testes automatizados que interagem com o ambiente Databricks
+[Databricks Connect](https://docs.databricks.com/aws/en/dev-tools/databricks-connect/python/) is a client library that allows you to connect your local development environment to Databricks. This enables:
+- Local development
+- Continuous integration
+- Remote debugging
+- Automated test execution that interacts with the Databricks environment
 
 ### GitHub Actions
-[GitHub Actions](https://github.com/features/actions) é uma plataforma de automação que permite criar fluxos de trabalho de CI/CD diretamente no seu repositório GitHub. Com o GitHub Actions, você pode automatizar, personalizar e executar seus fluxos de trabalho de desenvolvimento de software diretamente no GitHub.
+[GitHub Actions](https://github.com/features/actions) is an automation platform that allows you to create CI/CD workflows directly in your GitHub repository. With GitHub Actions, you can automate, customize, and run your software development workflows directly on GitHub.
 
-## Passo a Passo
+## Step by Step
 
-### Passo 1: Instalação do Databricks CLI
+### Step 1: Installing Databricks CLI
 
-Instale o Databricks CLI utilizando pip:
+Install the Databricks CLI using pip:
 
 ```bash
 pip install databricks-cli
 ```
 
-Gere o token de acesso ao Databricks (vamos utilizar no proximo passo)
+Generate the Databricks access token (we will use it in the next step)
 ![Token](/images/token.png)
 
-Configure o acesso ao Databricks:
+Configure access to Databricks:
 
 ```bash
 databricks configure --token
 ```
 
-Você será solicitado a fornecer:
-- URL do seu workspace Databricks (ex: https://adb-123456789.4.azuredatabricks.net)
-- Token de acesso pessoal
+You will be prompted to provide:
+- URL of your Databricks workspace (e.g., https://adb-123456789.4.azuredatabricks.net)
+- Personal access token
 
-Também é possivel utilizar authenticação via browser, caso prefira.
+It is also possible to use browser authentication if you prefer.
 
-### Passo 2: Clone do Repositório
+### Step 2: Cloning the Repository
 
-Clone este repositório para o seu ambiente local:
+Clone this repository to your local environment:
 
 ```bash
 git clone https://github.com/alfeuduran/databricks-lab-example-port.git
 
 cd databricks-lab-example-port
 ```
-O repositorio já está configurado com um job existente, que cria uma tabela de funcionários. e um workflow configurado para executar este job.
-Caso você deseje utilizar um job diferente, você pode seguir o passo 3.
-### (Opcional) Passo 3: Importação de um Job Existente
+The repository is already configured with an existing job that creates an employee table and a workflow configured to run this job.
+If you want to use a different job, you can follow step 3.
+### (Optional) Step 3: Importing an Existing Job
 
-Para começar, importe um job existente do Databricks:
+To start, import an existing job from Databricks:
 
 ```bash
 databricks bundle generate job --existing-job-id 663063874671210 -t dev
 ```
 
-Onde:
-- `--existing-job-id 663063874671210` especifica o ID do job que você deseja importar
-- `-t dev` especifica o ambiente de destino (target environment) de onde o job será importado
+Where:
+- `--existing-job-id 663063874671210` specifies the ID of the job you want to import
+- `-t dev` specifies the target environment from which the job will be imported
 
-Este comando irá gerar os arquivos de configuração necessários para que você possa trabalhar com o job localmente.
+This command will generate the necessary configuration files so you can work with the job locally.
 
-#### Exemplo de Execução
+#### Example Execution
 
-Quando executamos o comando para importar um job existente:
+When we run the command to import an existing job:
 
 ```bash
 > databricks bundle generate job --existing-job-id 393880860618601 -t dev -p dev
@@ -120,220 +120,219 @@ File successfully saved to src/create_table_job.py
 Job configuration successfully saved to resources/lab_cicd_criar_tabela_funcionario.yml
 ```
 
-Como podemos observar:
-- O arquivo SQL do job foi salvo no diretório `src/`
-- A configuração do job foi salva no diretório `resources/`
+As we can see:
+- The job's SQL file was saved in the `src/` directory
+- The job configuration was saved in the `resources/` directory
 
-### Passo 4: Configuração de Variáveis de Ambiente
+### Step 4: Setting Environment Variables
 
-#### Configuração do Catálogo
+#### Catalog Configuration
 
-No job importado (lab_cicd_criar_tabela_funcionario.job.yml.job.yml), usamos variáveis parametrizadas para garantir a portabilidade entre diferentes ambientes:
+In the imported job (`lab_cicd_criar_tabela_funcionario.job.yml.job.yml`), we use parameterized variables to ensure portability between different environments:
 
 ```
 catalogo: ${catalogo}
 ```
 
-Essa abordagem permite que o mesmo job seja executado em diferentes ambientes (dev, qa, prod), utilizando o catálogo apropriado para cada um.
+This approach allows the same job to be run in different environments (dev, qa, prod), using the appropriate catalog for each one.
 
-#### Como Funciona
+#### How It Works
 
-1. No arquivo `databricks.yml`, definimos os diferentes ambientes e suas respectivas configurações.
-2. Para cada ambiente (target), especificamos o valor que deve ser usado para a variável `catalogo`.
-3. Quando implantamos ou executamos o job em um ambiente específico, o sistema substitui a variável `${catalogo}` pelo valor configurado para aquele ambiente.
+1. In the `databricks.yml` file, we define the different environments and their respective configurations.
+2. For each environment (target), we specify the value that should be used for the `catalogo` variable.
+3. When we deploy or run the job in a specific environment, the system replaces the `${catalogo}` variable with the value configured for that environment.
 
-Por exemplo:
-- No ambiente `dev`, `${catalogo}` pode ser substituído por `catalogo_dev`
-- No ambiente `qa`, `${catalogo}` pode ser substituído por `catalogo_qa`
-- No ambiente `prod`, `${catalogo}` pode ser substituído por `catalogo_prod`
+For example:
+- In the `dev` environment, `${catalogo}` can be replaced by `catalogo_dev`
+- In the `qa` environment, `${catalogo}` can be replaced by `catalogo_qa`
+- In the `prod` environment, `${catalogo}` can be replaced by `catalogo_prod`
 
-### Passo 5: Deployment em Diferentes Ambientes
+### Step 5: Deployment to Different Environments
 
-Para fazer o deployment do job para um ambiente específico:
+To deploy the job to a specific environment:
 
 ```bash
 databricks bundle deploy -t dev
 ```
 
-Este comando implantará o job no ambiente de desenvolvimento (`dev`), substituindo a variável `${catalogo}` pelo valor definido para este ambiente.
+This command will deploy the job to the development environment (`dev`), replacing the `${catalogo}` variable with the value defined for this environment.
 
-Para implantar em outros ambientes:
+To deploy to other environments:
 
 ```bash
-databricks bundle deploy -t qa     # Deploy para ambiente de QA
-databricks bundle deploy -t prod   # Deploy para ambiente de produção
+databricks bundle deploy -t qa     # Deploy to QA environment
+databricks bundle deploy -t prod   # Deploy to production environment
 ```
 
-### Passo 6: Executando o Job
+### Step 6: Running the Job
 
-Para executar o job em um ambiente específico:
+To run the job in a specific environment:
 
 ```bash
 databricks bundle run -t dev
 ```
-*Caso exista mais de um job no bundle, será solicitado qual job você deseja executar.*
+*If there is more than one job in the bundle, you will be prompted to choose which job to run.*
 
 
-#### Resultado do Deployment
+#### Deployment Result
 
-Após executar o comando de deployment, o job será criado no Databricks com o usuário logado como proprietário:
+After running the deployment command, the job will be created in Databricks with the logged-in user as the owner:
 
-![Job criado no Databricks](images/workflow.png)
+![Job created in Databricks](images/workflow.png)
 
-Observe que:
-- O nome do job inclui um prefixo indicando o ambiente (`[dev_alfeu_duran]`)
-- O usuário que executou o comando de deployment é automaticamente definido como o proprietário do job
-- As tags do job são preservadas durante o deployment
+Note that:
+- The job name includes a prefix indicating the environment (`[dev_alfeu_duran]`)
+- The user who ran the deployment command is automatically set as the job owner
+- The job tags are preserved during deployment
 
-## Executando Testes Unitários e de Integração
+## Running Unit and Integration Tests
 
-Este projeto utiliza pytest para testes unitários e o Databricks Connect para executar testes que interagem com um ambiente Databricks.
+This project uses pytest for unit tests and Databricks Connect to run tests that interact with a Databricks environment.
 
-### Sobre o Databricks Connect
+### About Databricks Connect
 
-Databricks Connect é uma biblioteca cliente que permite conectar seu ambiente de desenvolvimento local ao Databricks. Isso possibilita:
+Databricks Connect is a client library that allows you to connect your local development environment to Databricks. This enables:
 
-- **Desenvolvimento local**: Escrever e testar código localmente antes de implantá-lo no Databricks
-- **Integração contínua**: Executar testes automatizados que interagem com o ambiente Databricks
-- **Depuração remota**: Depurar código que será executado no cluster Databricks diretamente da sua IDE
+- **Local development**: Write and test code locally before deploying it to Databricks
+- **Continuous integration**: Run automated tests that interact with the Databricks environment
+- **Remote debugging**: Debug code that will run on the Databricks cluster directly from your IDE
 
-Com o Databricks Connect, seus testes podem:
-1. Criar e manipular tabelas no Databricks
-2. Executar consultas SQL e verificar resultados
-3. Simular a execução de jobs exatamente como aconteceria no ambiente Databricks
-4. Acessar o Unity Catalog, Delta Lake e outras funcionalidades do Databricks
+With Databricks Connect, your tests can:
+1. Create and manipulate tables in Databricks
+2. Run SQL queries and check results
+3. Simulate job execution exactly as it would happen in the Databricks environment
+4. Access Unity Catalog, Delta Lake, and other Databricks features
 
-Isso elimina a necessidade de mocks extensivos e permite testes mais realistas que validam a interação completa com a plataforma Databricks.
+This eliminates the need for extensive mocks and allows for more realistic tests that validate the full interaction with the Databricks platform.
 
-### Pré-requisitos para os Testes
+### Test Prerequisites
 
-1. Instalação das dependências de teste:
+1. Install test dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-2. Databricks CLI configurada (feito no inicio deste documento)
+2. Databricks CLI configured (done at the beginning of this document)
 
 
 
+### Test Structure
 
-### Estrutura dos Testes
+The tests are organized as follows:
 
-Os testes são organizados da seguinte forma:
+- `tests/test_create_table_job.py`: Tests to validate table creation and data manipulation in Databricks
 
-- `tests/test_create_table_job.py`: Testes para validar a criação de tabelas e manipulação de dados no Databricks
+These simplified Unit and Integration tests check:
+1. If the table was created
+1. The structure of the created table (expected columns)
+2. The count of records inserted into the table
+3. If there are null values in the CPF field
+3. If a specific record is present in the table
 
-Estes testes simplificados, Unitarios e de Integração, verificam:
-1. Verificam se a tabela foi criada
-1. Verificam a estrutura da tabela criada (colunas esperadas)
-2. Verificam a contagem de registros inseridos na tabela
-3. Verificam se existem valores nulos no campo CPF
-3. Verificam se um registro específico está presente na tabela
+### Running the Tests
 
-### Executando os Testes
+**Important**: The tests are configured to run after the table is created in the `hml_hands_on` catalog. This is set in the `tests/test_create_table_job_direct.py` file, which checks for the existence and content of the table in this specific catalog.
+Change the environment variables to the correct catalog and schema before running the tests.
 
-**Importante**: Os testes estão configurados para serem executados após a criação da tabela no catálogo `hml_hands_on`. Isso é definido no arquivo `tests/test_create_table_job_direct.py`, que verifica a existência e o conteúdo da tabela neste catálogo específico.
-Altere as variaveis de ambiente para o catalogo e schema correto antes de executar os testes.
+- The default catalog set is: `hml_hands_on`  (if running in the dev environment, change to `dev_hands_on`)
 
-- O catalogo padrao setado é: `hml_hands_on`  (se estiver rodando no ambiente de dev, alterar para `dev_hands_on`)
-
-- O schema setado é: `alfeu_duran` (alterar para o schema do seu usuário, que foicriado automaticamente no momento que foi executado o job)
+- The schema set is: `alfeu_duran` (change to your user schema, which was automatically created when the job was run)
 
 
-Para executar todos os testes (após a execução do job e alterar as variaveis no arquivo do pytest):
+To run all tests (after running the job and changing the variables in the pytest file):
 ```bash
 pytest tests/
 ```
 
-![Pytest executado com sucesso](images/pytest_test_passed.png)
+![Pytest run successfully](images/pytest_test_passed.png)
 
-Para executar um teste específico:
+To run a specific test:
 ```bash
 pytest tests/test_create_table_job.py
 ```
 
-Para executar com informações detalhadas:
+To run with detailed information:
 ```bash
 pytest tests/ -v
 ```
 
-## Validação de Código Estático com Flake8
+## Static Code Validation with Flake8
 
-O Flake8 é um linter que verifica a qualidade do código Python. Ele é configurado para verificar:
+Flake8 is a linter that checks Python code quality. It is configured to check for:
 
-- Erros de sintaxe
-- Erros de estilo
-- Erros de complexidade
+- Syntax errors
+- Style errors
+- Complexity errors
 
-Configuramos o Flake8 para verificar o código no momento do CI/CD com Github Actions.
+We have configured Flake8 to check the code during CI/CD with GitHub Actions.
 
 
 ## GitHub Actions
 
-Para automatizar o processo de CI/CD, foi configurado um workflow no GitHub Actions. O arquivo `.github/workflows/validate-deploy-qa.yml` define o pipeline que é executado quando um Pull Request é aberto ou atualizado na branch `qa`.
+To automate the CI/CD process, a workflow has been configured in GitHub Actions. The file `.github/workflows/validate-deploy-qa.yml` defines the pipeline that runs when a Pull Request is opened or updated on the `qa` branch.
 
-![Workflow do GitHub Actions](images/actions_workflow.png)
+![GitHub Actions Workflow](images/actions_workflow.png)
 
-Nossa pipeline será composta por 5 jobs sequenciais, que serão explicados em detalhes abaixo:
+Our pipeline consists of 5 sequential jobs, which are explained in detail below:
 
 1. **Code Quality Check**
-   - Verifica a qualidade do código usando Flake8
-   - Analisa complexidade e estilo do código
-   - Garante que não há erros de sintaxe
+   - Checks code quality using Flake8
+   - Analyzes code complexity and style
+   - Ensures there are no syntax errors
 
 2. **Validate Bundle**
-   - Valida a configuração do bundle do Databricks
-   - Verifica se todas as configurações estão corretas para o ambiente QA
+   - Validates the Databricks bundle configuration
+   - Checks if all configurations are correct for the QA environment
 
 3. **Deploy to QA**
-   - Faz o deploy do job para o ambiente QA
-   - Utiliza as credenciais configuradas no GitHub Secrets
+   - Deploys the job to the QA environment
+   - Uses credentials configured in GitHub Secrets
 
 4. **Run Job in QA**
-   - Executa o job no ambiente QA
-   - Verifica se o job é executado com sucesso
+   - Runs the job in the QA environment
+   - Checks if the job runs successfully
 
 5. **Run Tests**
-   - Executa os testes unitários e de integração
-   - Verifica se os testes passam após o deploy
+   - Runs unit and integration tests
+   - Checks if the tests pass after deployment
 
 
-## Fluxo de Trabalho com GitHub Actions
-Imagem visual sobre o fluxo de trabalho com GitHub Actions:
+## Workflow with GitHub Actions
+Visual diagram of the workflow with GitHub Actions:
 
 
-![Fluxo do GitHub Actions](images/github_actions.png)
+![GitHub Actions Workflow](images/github_actions.png)
 
-O fluxo de trabalho com GitHub Actions segue os seguintes passos:
+The workflow with GitHub Actions follows these steps:
 
-1. **Desenvolvimento na Branch Dev**
-   - Os desenvolvedores realizam seus commits na branch `dev`
-   - Esta é a branch de desenvolvimento onde as novas features são implementadas
+1. **Development on the Dev Branch**
+   - Developers commit to the `dev` branch
+   - This is the development branch where new features are implemented
 
-2. **Pull Request para QA**
-   - Quando o código está pronto, é criado um Pull Request de `dev` para `qa`
-   - Este processo pode ser automatizado com ferramentas como o GitHub Auto-PR
-   - O PR dispara automaticamente o workflow de validação
+2. **Pull Request to QA**
+   - When the code is ready, a Pull Request is created from `dev` to `qa`
+   - This process can be automated with tools like GitHub Auto-PR
+   - The PR automatically triggers the validation workflow
 
-3. **Execução do Workflow**
-   - O workflow definido em `.github/workflows/validate-deploy-qa.yml` é executado
-   - Todos os 5 jobs são executados sequencialmente
-   - Qualquer falha em um dos jobs interrompe o processo
+3. **Workflow Execution**
+   - The workflow defined in `.github/workflows/validate-deploy-qa.yml` is executed
+   - All 5 jobs are run sequentially
+   - Any failure in one of the jobs stops the process
 
-4. **Proteção da Branch QA**
-   - A branch `qa` é protegida por regras de branch protection
-   - O merge só é permitido se todos os checks do workflow passarem
-   - Isso garante que apenas código validado chegue ao ambiente de QA
+4. **QA Branch Protection**
+   - The `qa` branch is protected by branch protection rules
+   - Merging is only allowed if all workflow checks pass
+   - This ensures that only validated code reaches the QA environment
 
-5. **Merge ou Rejeição**
-   - Se todos os checks passarem, o PR pode ser aprovado e merged
-   - Se houver falhas, o PR é bloqueado até que os problemas sejam corrigidos
-   - O desenvolvedor recebe feedback imediato sobre qualquer problema
+5. **Merge or Rejection**
+   - If all checks pass, the PR can be approved and merged
+   - If there are failures, the PR is blocked until the issues are fixed
+   - The developer receives immediate feedback on any problems
 
-Este fluxo garante a qualidade do código e a integridade do ambiente de QA, estabelecendo um processo robusto de CI/CD.
+This workflow ensures code quality and the integrity of the QA environment, establishing a robust CI/CD process.
 
 
 
-Exemplo de configuração do workflow:
+Example workflow configuration:
 
 ```yaml
 name: Validate QA PR
@@ -367,20 +366,20 @@ jobs:
           flake8 src/ --count --select=E9,F63,F7,F82 --ignore=F821 --show-source --statistics
 ```
 
-Este workflow garante que:
-- O código está em conformidade com os padrões de qualidade
-- O bundle está configurado corretamente
-- O deploy é realizado com sucesso
-- O job é executado corretamente
-- Os testes passam após o deploy
+This workflow ensures that:
+- The code complies with quality standards
+- The bundle is correctly configured
+- Deployment is successful
+- The job runs correctly
+- Tests pass after deployment
 
-Para que o workflow funcione corretamente, é necessário configurar os seguintes secrets no GitHub:
-- `DATABRICKS_HOST_HML`: URL do workspace Databricks
-- `DATABRICKS_TOKEN_HML`: Token de acesso ao Databricks
+For the workflow to work correctly, you need to configure the following secrets in GitHub:
+- `DATABRICKS_HOST_HML`: Databricks workspace URL
+- `DATABRICKS_TOKEN_HML`: Databricks access token
 
 ---
 
-## Referência
+## Reference
 
 - [Databricks CLI](https://docs.databricks.com/aws/en/dev-tools/cli/)
 - [Databricks Asset Bundles](https://docs.databricks.com/aws/en/dev-tools/bundles)
